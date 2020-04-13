@@ -1,3 +1,3 @@
-## Working with geo-tagged .jpg files and anthropological fieldwork
+## Anthropological fieldwork and working with geo-tagged .jpg files 
 
 In the summer of 2019, I travelled to Burkina Faso as a team member of my advisor's NSF-funded research on re-vegetation and degradation in the Sahel. We performed transects in various regions of the country where we collected waypoints and took geo-tagged photos. During each transect, we took many more photos than waypoints, which created a slight problem for us when it came to attach photos near our waypoints. This R script attempts to solve this problem by extracting GPS coordinates from .jpg files and choosing those photos with coordinates closest to our waypoints. As of 04/12/2020, this script/function is still in progress. 
