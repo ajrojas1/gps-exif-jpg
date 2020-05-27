@@ -1,28 +1,23 @@
 # Extract EXIF Data using R
 # Alfredo Rojas 
-# 04/11/2020
+# updated: 5/27/2020
 
 library(exifr)
 library(dplyr)
 library(tmaptools)
 library(tidyverse)
 library(leaflet)
-
-# create path to files and list JPGs
-
-photo_files <- list.files(pattern = "_GPS")
-path_to_file <- file.path(photo_files, "")
-path_to_gps <- file.path("GPS_Points", "")
+library(sf)
 
 extract_jpg_transect <- function(jpg_path, tran_path){
   
   # ADD ERROR CHECKING FOR FUTURE
   # list jpg files and gps files for iteration
-  jpg_files <- list.files(path_to_file, pattern = "*.jpg")
-  gps_files <- list.files(path_to_gps, pattern = "*.gpx")
+  jpg_files <- list.files(jpg_path, pattern = "*.jpg")
   
-  # create data frame from EXIF data
-  exif_data <- read_exif(paste0(path_to_file, jpg_files))
+  # create data frame from EXIF data and gpx data
+  exif_data <- read_exif(file.path(jpg_path, jpg_files))
+  gps_data <- st_read(tran_path)
   
   # get relevant variables
   # https://www.r-bloggers.com/extracting-exif-data-from-photos-using-r/
@@ -38,18 +33,20 @@ extract_jpg_transect <- function(jpg_path, tran_path){
     count()
   
   # separate geometry into lon/lat: https://github.com/r-spatial/sf/issues/231
-  waypoints_sel <- gps_files %>%
+  waypoints_sel <- tran_path %>%
+    st_read() %>%
     st_geometry() %>% # creates list
     do.call(rbind, .) %>% # do.call stores each list element for rbind, 
     as_tibble() %>%       # rbind converts c("X", "Y") into a matrix and combines all rows
     setNames(c("lon", "lat")) # creates names for new tibble
   
   # bind columns
-  waypoint_bind <- bind_cols(gps_files , waypoints_sel) %>%
+  waypoint_bind <- bind_cols(gps_data, waypoints_sel) %>%
     select(time, lon, lat)
   
   rm(waypoints_sel)
   
+  # round decimal points for comparison
   waypoint_bind$lon <- round(waypoint_bind$lon, 6) # find a way to generalize decimal places 
   waypoint_bind$lat <- round(waypoint_bind$lat, 5)
   
@@ -74,12 +71,10 @@ extract_jpg_transect <- function(jpg_path, tran_path){
   
   end_time <- Sys.time()
   end_time - start_time # compare to indexing and modifying data frame. . . 
-
+  
+  return(output_df)
 }
 
-library(tidyverse)
-look_csv <- read_csv("output_csv/bark.csv")
-new_folder <- file.path(getwd(), "output_csv")
-file.copy(look_csv$SourceFile, new_folder)
+
 
 
